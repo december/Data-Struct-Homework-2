@@ -9,8 +9,8 @@ int count = 1;
 int exitpos = 0;
 int nodesize = 0;
 int stacksize = 0;
-int queue[500000];
-int stack[500000];
+int queue[500100];
+int stack[500100];
 int time = 0;
 unsigned int answer = -1;
 bool finished = false;
@@ -33,10 +33,11 @@ struct node
 	bool instack;     //当前在栈中
 	int moneynum;        //到起点最多的钱数
 	int money;       //该点（强连通分量）的钱数
+	bool right;     //可以到终点
 	node* present;
 	neighborlist *neighbor;
 	node():moonmin(0), moneynum(-1), moon(1), neighbor(NULL), present(NULL) {}
-}cross[500000], bignode[500000];	
+}cross[500100], bignode[500100];	
 
 node *target = NULL;
 neighborlist* temp;
@@ -157,10 +158,25 @@ int findmoney(int number)
 	{
 		if (findmoney(moveon->pos) > most)
 			most = bignode[moveon->pos].moneynum;
+		if (bignode[moveon->pos].right)
+			bignode[number].right = true;
 		moveon = moveon->next;
 	}
-	bignode[number].moneynum = most + bignode[number].money;
+	if (bignode[number].right)
+		bignode[number].moneynum = most + bignode[number].money;
 	return bignode[number].moneynum;
+}
+
+int prepare()
+{
+	int tmp = 0;
+	char read = getchar();
+	while (read >= '0' && read <= '9')
+	{
+		tmp = tmp * 10 + (read - '0');
+		read = getchar();
+	}
+	return tmp;
 }
 
 int main()
@@ -186,7 +202,8 @@ int main()
 	cross[0].visit = true;
 	for (int i = 0;i < M;i++)
 	{
-		scanf("%d %d", &start, &end);
+		start = prepare();
+		end = prepare();
 		Temp[time].pos = end;
 		Temp[time].next = cross[start].neighbor;
 		cross[start].neighbor = &Temp[time++];
@@ -201,6 +218,7 @@ int main()
 			separate(&cross[i], cross[i].neighbor);
 	for (int i = 0;i < N;i++)
 		setneighbor(&cross[i]);
+	cross[N-1].present->right = true;
 	answer = findmoney(cross[0].present->order);
 	printf("%u\n", answer);
 	return 0;
